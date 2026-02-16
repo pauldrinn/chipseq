@@ -415,7 +415,7 @@ workflow CHIPSEQ {
     ch_genome_bam_bai
         .map {
             meta, bam, bai ->
-                !meta.control && meta.antibody ? [ meta, [ bam ], [ bai ] ] : null
+                (meta.control == null || meta.control == '') && meta.antibody ? [ meta, [ bam ], [ bai ] ] : null
         }
         .filter { it != null }
         .set { ch_ip_no_control_bam_bai }
