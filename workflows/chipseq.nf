@@ -400,13 +400,29 @@ workflow CHIPSEQ {
         }
         .set { ch_control_bam_bai }
 
+    // Create channels: [ meta, [ ip_bam, control_bam ], [ ip_bai, control_bai ] ] for samples WITH controls
     ch_genome_bam_bai
         .map {
             meta, bam, bai ->
                 meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
         }
+        .filter { it != null }
         .combine(ch_control_bam_bai, by: 0)
         .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
+        .set { ch_ip_with_control_bam_bai }
+
+    // Create channels: [ meta, [ ip_bam ], [ ip_bai ] ] for samples WITHOUT controls
+    ch_genome_bam_bai
+        .map {
+            meta, bam, bai ->
+                !meta.control && meta.antibody ? [ meta, [ bam ], [ bai ] ] : null
+        }
+        .filter { it != null }
+        .set { ch_ip_no_control_bam_bai }
+
+    // Combine both channels
+    ch_ip_with_control_bam_bai
+        .mix(ch_ip_no_control_bam_bai)
         .set { ch_ip_control_bam_bai }
 
     //
@@ -435,11 +451,11 @@ workflow CHIPSEQ {
         ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { it.text.trim() }
     }
 
-    // Create channels: [ meta, ip_bam, control_bam ]
+    // Create channels: [ meta, ip_bam, control_bam ] where control_bam is empty for samples without controls
     ch_ip_control_bam_bai
         .map {
             meta, bams, bais ->
-                [ meta , bams[0], bams[1] ]
+                bams.size() == 2 ? [ meta, bams[0], bams[1] ] : [ meta, bams[0], [] ]
         }
         .set { ch_ip_control_bam }
 

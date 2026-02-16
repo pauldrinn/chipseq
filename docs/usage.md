@@ -20,6 +20,8 @@ The `antibody` column is required to separate the downstream consensus peak merg
 
 The `control` column should be the `sample` identifier for the controls for any given IP. This column together with the `control_replicate` column will set the corresponding control for each of the samples in the table.
 
+**Note:** The `control` and `control_replicate` columns are optional. Samples with an `antibody` specified but without a control will proceed through peak calling without control normalization (see "Peak calling without controls" section below).
+
 ```console
 group,fastq_1,fastq_2,replicate,antibody,control,control_replicate
 WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
@@ -28,6 +30,39 @@ WT_BCATENIN_IP,BLA203A49_S40_L001_R1_001.fastq.gz,,3,BCATENIN,WT_INPUT,3
 WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
 WT_INPUT,BLA203A30_S21_L002_R1_001.fastq.gz,,2,,,
 WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
+```
+
+### Peak calling without controls
+
+The pipeline supports calling peaks without control samples. This can be useful when:
+
+- Control samples are not available for your experiment
+- You want to identify all enriched regions without control normalization
+- You are working with publicly available data that lacks controls
+
+To run peak calling without controls, simply leave the `control` and `control_replicate` columns empty for your IP samples, but ensure the `antibody` column is filled:
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+HOXB13_SAMPLE1,sample1.fastq.gz,,1,HOXB13,,
+HOXB13_SAMPLE2,sample2.fastq.gz,,2,HOXB13,,
+HOXB13_SAMPLE3,sample3.fastq.gz,,3,HOXB13,,
+```
+
+**Scientific Considerations:**
+
+- **Increased false positives**: Without controls, MACS3 cannot distinguish between genuine enrichment and background noise, which may lead to more false positive peaks.
+- **Local bias**: Control samples help account for local biases in the genome (e.g., open chromatin regions, copy number variations).
+- **Filtering recommendations**: When running without controls, consider applying more stringent filtering criteria on the called peaks (e.g., higher fold-enrichment thresholds, q-value cutoffs).
+- **Downstream validation**: Additional validation steps (e.g., motif analysis, comparison with known binding sites) become more important.
+
+**Mixed samplesheets**: You can combine samples with and without controls in the same samplesheet. The pipeline will handle each sample appropriately:
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+SAMPLE_WITH_CONTROL,ip1.fastq.gz,,1,PROTEIN_A,CONTROL_SAMPLE,1
+SAMPLE_WITHOUT_CONTROL,ip2.fastq.gz,,1,PROTEIN_B,,
+CONTROL_SAMPLE,control.fastq.gz,,1,,,
 ```
 
 ### Multiple runs of the same library
@@ -83,9 +118,9 @@ NAIVE_INPUT,BLA203A49_S1_L006_R1_001.fastq.gz,,3,,,
 | `fastq_1`           | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
 | `fastq_2`           | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
 | `replicate`         | Integer representing replicate number. This will be identical for re-sequenced libraries. Must start from `1..<number of replicates>`.                                                 |
-| `antibody`          | Antibody name. This is required to segregate downstream analysis for different antibodies. Required when `control` is specified.                                                       |
-| `control`           | Sample name for control sample.                                                                                                                                                        |
-| `control_replicate` | Integer representing replicate number for control sample.                                                                                                                              |
+| `antibody`          | Antibody name. This is required to segregate downstream analysis for different antibodies and is necessary for peak calling to occur. Leave empty for control samples only.           |
+| `control`           | Sample name for control sample. Optional - can be left empty to run peak calling without controls.                                                                                    |
+| `control_replicate` | Integer representing replicate number for control sample. Only required when `control` is specified.                                                                                   |
 
 Example design files have been provided with the pipeline for [paired-end](../assets/samplesheet_pe.csv) and [single-end](../assets/samplesheet_se.csv) data.
 
