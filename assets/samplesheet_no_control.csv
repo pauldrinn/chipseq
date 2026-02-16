@@ -1,0 +1,4 @@
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+HOXB13_SAMPLE1,HOXB13_SAMPLE1.fastq.gz,,1,HOXB13,,
+HOXB13_SAMPLE2,HOXB13_SAMPLE2.fastq.gz,,2,HOXB13,,
+HOXB13_SAMPLE3,HOXB13_SAMPLE3.fastq.gz,,3,HOXB13,,
