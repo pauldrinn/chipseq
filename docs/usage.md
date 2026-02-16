@@ -23,7 +23,7 @@ The `control` column should be the `sample` identifier for the controls for any 
 **Note:** The `control` and `control_replicate` columns are optional. Samples with an `antibody` specified but without a control will proceed through peak calling without control normalization (see "Peak calling without controls" section below).
 
 ```console
-group,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
 WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
 WT_BCATENIN_IP,BLA203A25_S16_L002_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
 WT_BCATENIN_IP,BLA203A49_S40_L001_R1_001.fastq.gz,,3,BCATENIN,WT_INPUT,3
